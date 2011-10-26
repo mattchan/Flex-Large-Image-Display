@@ -1,0 +1,15 @@
+I was tasked with displaying large images in Adobe AIR, but Flex has a max 
+bitmap dimension of 2880 for display. I wrote this to get around that 
+problem to display the entire image, but at lower scale. The program works by
+loading an image in an HTML control (which can also be used to display CMYK
+images) and then capturing chunks of pixels from the displayed HTML and copying
+them into into an Image control. Each chunk of the captured HTML display is
+captured by moving the HTML loader's scroll rectangle to a new area.
+
+This is not an optimal solution since large images will use lots of memory
+since I am technically rendering the image twice when it's loaded. Runtime
+performance is also poor since I'm looping through "rows" and "columns" of
+the image in chunks. It's an O(n^2) runtime superficially speaking.
+
+The included image is my own which I took at the bottom of Wachusett Dam in
+Massachusetts on October 10, 2011.
