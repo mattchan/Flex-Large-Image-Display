@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute">
+
+	<mx:Script>
+		<![CDATA[
+			import mx.graphics.ImageSnapshot;
+			
+			private var captured:BitmapData;
+			private var maxCols:int;
+			private var maxRows:int;
+			private var currentRow:int;
+			private var currentCol:int;
+			private var bmpWidth:Number;
+			private var bmpHeight:Number;
+			private var bmpData:BitmapData;
+			
+			private function captureHTML( event:MouseEvent ) : void
+			{
+				captured   = new BitmapData( html.contentWidth, html.contentHeight, false );
+				maxCols    = Math.ceil( html.contentWidth  / ImageSnapshot.MAX_BITMAP_DIMENSION );
+				maxRows    = Math.ceil( html.contentHeight / ImageSnapshot.MAX_BITMAP_DIMENSION );
+				currentRow = 0;
+				currentCol = 0;
+				
+				captureBlock();
+			}
+			
+			private function captureBlock() : void
+			{
+				bmpWidth  = Math.min( html.contentWidth  - html.htmlLoader.scrollH, ImageSnapshot.MAX_BITMAP_DIMENSION );
+				bmpHeight = Math.min( html.contentHeight - html.htmlLoader.scrollV, ImageSnapshot.MAX_BITMAP_DIMENSION );
+				
+				bmpData = new BitmapData( bmpWidth, bmpHeight );
+				bmpData.draw( html );
+				captured.copyPixels( bmpData, bmpData.rect, new Point( html.htmlLoader.scrollH, html.htmlLoader.scrollV) );
+
+				html.htmlLoader.scrollH = bmpData.rect.right;
+				
+				currentCol++;
+				
+				if( currentCol == maxCols && currentRow < maxRows )
+				{
+					currentCol = 0;
+					currentRow++;
+					html.htmlLoader.scrollV = bmpData.rect.bottom;
+				}
+				else
+				{
+					image.source = new Bitmap( captured );
+					html.visible = false;
+				}
+				
+				bmpData.dispose();
+			}
+			
+			private function toggle( event:MouseEvent ) : void
+			{
+				html.visible = !html.visible;
+			}
+			
+			private function onHTMLRender(event:Event):void
+			{
+				if( html.loaded && (currentRow < maxRows || currentCol < maxCols) )
+				{
+					captureBlock();
+				}
+			}
+		]]>
+	</mx:Script>
+
+	<mx:ApplicationControlBar dock="true" width="100%">
+		<mx:Button label="capture" click="captureHTML(event)"/>
+		<mx:Button label="toggle" click="toggle(event)"/>
+	</mx:ApplicationControlBar>
+
+	<mx:Image id="image" width="75%" height="75%"/>
+	
+	<mx:HTML id="html" location="app:/fountain.jpg"
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off"
+		htmlRender="onHTMLRender(event)"/>
+	
+</mx:WindowedApplication>
